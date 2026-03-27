@@ -3,31 +3,61 @@ import { useParams } from "react-router-dom";
 import { AppContext } from "../contexts/AppContext";
 import axios from "axios";
 import { FiUsers } from "react-icons/fi";
+import toast from "react-hot-toast";
 
 const Event = () => {
   const { eventId } = useParams();
-  const [event, setEvent] = useState({});
+  const [event, setEvent] = useState(null);
   const { user } = useContext(AppContext);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const getEventById = async () => {
+      try{
       const res = await axios.get(
         import.meta.env.VITE_API_URL + `/get-event-by-id/${eventId}`
       );
-      const data = await res.data;
+      const data =  res.data;
 
       if (data.success) {
         setEvent(data.data);
       } else {
         toast.error(data.message);
       }
-    };
+    } catch(err){
+      setError("Failed to fetch event details. Please try again later.");
+    } finally {
+      setLoading(false)
+    }
 
+  }  
     getEventById();
-  }, []);
+  }, [eventId]);
+
+
+  if(loading){
+    return (
+      <div className="w-full h-[70vh] flex flex-col justify-center items-center gap-3">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <p>Loading event details...</p>
+      </div>
+    );
+  }
+
+  if(error){
+    return (
+      <div className="w-full h-[70vh] flex flex-col justify-center items-center gap-3">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
+
 
   return (
+    
     <div className="w-full sm:w-[50vw] mx-auto px-5 my-10">
+     
       {event && (
         <div>
           <div className="p-4 bg-gray-100 rounded-lg grid gap-1">
